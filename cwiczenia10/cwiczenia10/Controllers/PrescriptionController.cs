@@ -26,7 +26,7 @@ public class PrescriptionController : ControllerBase
         
         for (int i = 0; i < addPrescription.Medicaments.Count; i++)
         {
-            if (!await _dbService.DoesMedicamentExist(addPrescription.Medicaments.ElementAt(i)))
+            if (!await _dbService.DoesMedicamentExist(addPrescription.Medicaments.ElementAt(i).IdMedicament))
                 return NotFound($"Medicament with id - {addPrescription.Medicaments.ElementAt(i).IdMedicament} does not exist.");
         }
         

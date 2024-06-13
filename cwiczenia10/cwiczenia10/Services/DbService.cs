@@ -19,34 +19,53 @@ public class DbService : IDbService
         return await _context.Patients.AnyAsync(e => e.IdPatient == id);
     }
 
-    public async void CreatePatient(Patient patient)
+    public async Task CreatePatient(Patient patient)
     {
-        
+        await _context.AddAsync(patient);
+        await _context.SaveChangesAsync();
     }
 
-    public async Task<bool> DoesMedicamentExist(Medicament medicament)
+    public async Task<bool> DoesMedicamentExist(int id)
     {
-        return true;
+        return await _context.Medicaments.AnyAsync(e => e.IdMedicament == id);
     }
 
-    public async Task<bool> IsMax10Medicaments(ICollection<Medicament> medicaments)
+    public async Task CreatePrescription(AddPrescription addPrescription)
     {
-        return true;
+        int id = _context.Prescriptions.Max(e => e.IdPrescription) + 1;
+        var prescription = new Prescription()
+        {
+            IdPrescription = id, 
+            Date = addPrescription.Date,
+            DueDate = addPrescription.DueDate.GetValueOrDefault(),
+            IdPatient = addPrescription.Patient.IdPatient,
+            IdDoctor = 0
+        };
+        await _context.AddAsync(prescription);
+
+        foreach (var medicament in addPrescription.Medicaments)
+        {
+            var med = new PrescriptionMedicament()
+            {
+                IdMedicament = medicament.IdMedicament,
+                IdPrescription = id,
+                Dose = medicament.Dose,
+                Details = medicament.Description
+            };
+            await _context.AddAsync(med);
+        }
+
+        await _context.SaveChangesAsync();
     }
 
-    public async Task<bool> IsDueDateCorrect(DateTime due, DateTime date)
-    {
-        return true;
-    }
-
-    public async void CreatePrescription(AddPrescription addPrescription)
-    {
-        
-    }
-
-    public async Task<PatientInfo> GetPatientInfo(int id)
+    public async Task<ICollection<Patient>> GetPatientInfo(int id)
     {
 
-        return new PatientInfo();
+        return await _context.Patients
+            .Include(e => e.Prescriptions)
+            .ThenInclude(e => e.PrescriptionMedicaments)
+            .ThenInclude(e => e.Prescription.Doctor)
+            .Where(e => e.IdPatient == id)
+            .ToListAsync();
     }
 }
