@@ -1,4 +1,5 @@
 using cwiczenia10.Context;
+using cwiczenia10.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,8 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
 builder.Services.AddDbContext<ApbdContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+builder.Services.AddScoped<IDbService, DbService>();
 
 var app = builder.Build();
 
@@ -20,5 +23,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.MapControllers();
 
 app.Run();
